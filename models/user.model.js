@@ -62,6 +62,7 @@ userSchema.methods = {
     securePassoword: function (plainPassowrd) {
         if (!plainPassowrd) return "";
         try {
+            /* https://nodejs.org/api/crypto.html#crypto_crypto_createhmac_algorithm_key_options */
             return crypto.createHmac('sha256', this.salt)
                 .update(plainPassowrd)
                 .digest("hex");
