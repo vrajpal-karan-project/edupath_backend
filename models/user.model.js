@@ -70,7 +70,6 @@ userSchema.methods = {
         }
         //returning "" empty string would cause error,
         // cuz password field is required therefore mongoDB will handle that thing by itself
-
     }
 }
 
