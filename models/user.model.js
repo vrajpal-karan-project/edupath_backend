@@ -22,6 +22,10 @@ const userSchema = new Schema({
         required: true
     },
     salt: String,
+    avatar: {
+        type: String,
+        default: ""
+    },
     about: {
         type: String,
         trim: true,
