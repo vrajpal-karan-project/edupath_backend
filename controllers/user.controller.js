@@ -1,5 +1,7 @@
 const User = require("../models/user.model");
 const { check, validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken"); /*To sign the jwt token with Secret */
+const expressJwt = require("express-jwt"); /* to validate JWT */
 const { normalErrors, getRoleName } = require("../helper");
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
@@ -81,9 +83,17 @@ exports.updateUser = (req, res) => {
             if (err) {
                 return res.status(400).json({ error: "NOT Authorized to Update" });
             }
-            user.salt = undefined;
-            user.enc_password = undefined;
-            res.json(user);
+
+            const token = jwt.sign({ _id: user._id }, process.env.SECRET);
+
+            //put token in cookie named "token" and set expiry of 24hrs
+            res.cookie("token", token, { expire: new Date(Date.now() + (24 * 60 * 60 * 1000)) });
+    
+            //Send Response to FrontEnd
+            const { _id, fullname, email, about, avatar, role } = user;
+    
+             res.json({ token, user: { _id, fullname, email, about, avatar, role } });
+            // res.json(user);
         }
     );
 };
