@@ -2,13 +2,7 @@ const User = require("../models/user.model");
 const { check, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken"); /*To sign the jwt token with Secret */
 const expressJwt = require("express-jwt"); /* to validate JWT */
-
-// Array of Error to Object 
-const normalErrors = (errors) => {
-    let obj = {};
-    errors.array().map(e => obj = { ...obj, [e.param]: e.msg });
-    return obj;
-}
+const { normalErrors } = require("../helper");
 
 exports.signup = (req, res) => {
     const errors = validationResult(req);
@@ -24,7 +18,7 @@ exports.signup = (req, res) => {
     const user = new User(req.body);
     user.save((err, user) => {
         if (err) {
-            console.error("ERROR IN SAVE", err);
+            console.error("ERROR IN USER.SAVE", err);
             return res.status(400).json({
                 message: "could not save User",
                 errors: { email: (err.name == "MongoError" && err.code === 11000) ? "Email already Exists" : err.errmsg }
@@ -59,8 +53,8 @@ exports.login = (req, res) => {
         res.cookie("token", token, { expire: new Date(Date.now() + (24 * 60 * 60 * 1000)) });
 
         //Send Response to FrontEnd
-        const { _id, fullname, email, role } = user;
-        return res.json({ token, user: { _id, fullname, email, role } });
+        const { _id, fullname, email, about, avatar, role } = user;
+        return res.json({ token, user: { _id, fullname, email, about, avatar, role } });
     })
 };
 
@@ -79,13 +73,29 @@ exports.isLoggedIn = expressJwt({
 // custom middlewares.
 exports.isAuthenticated = (req, res, next) => {
     // req.profile obj would be set from frontend
-    let checker = req.profile && req.auth && req.profile._id == req.auth._id;
+    let checker = (req.profile && req.auth && req.profile._id == req.auth._id) || req.myAccount.role == 2;
     if (!checker) {
         return res.status(403).json({
             error: "ACCESS DENIED!"
         });
     }
     next();
+};
+
+exports.verifyOldPassword = (req, res, next) => {
+    const { old_password } = req.body;
+    User.findById(req.auth._id).exec((err, user) => {
+        if (err || !user) {
+            console.log("=>Err in overifyOldPassword:", err);
+            return res.status(400).json({ error: "USER NOT FOUND!" });
+        }
+
+        /* authenticate method from userSchema// Check If Password NOT correct*/
+        if (!user.authenticate(old_password)) {
+            return res.status(401).json({ errors: { old_password: "Old Password is Not correct" } });
+        }
+        next();
+    });
 };
 
 exports.isAdmin = (req, res, next) => {
