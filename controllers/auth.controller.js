@@ -60,7 +60,7 @@ exports.login = (req, res) => {
 
 exports.logout = (req, res) => {
     res.clearCookie("token");
-    res.json({ message: "User Logged out" });
+    res.json({ message: "User Logged out", success: true });
 };
 
 // Check if user LoggedIn for Protected routes
