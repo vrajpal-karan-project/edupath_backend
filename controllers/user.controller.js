@@ -1,12 +1,12 @@
 const User = require("../models/user.model");
-const { check, validationResult } = require("express-validator");
-const jwt = require("jsonwebtoken"); /*To sign the jwt token with Secret */
-const { normalErrors, getRoleName, uploadPaths, extensionOf } = require("../helper");
-const crypto = require('crypto');
-const formidable = require("formidable");  //FormData Lib
-const { v4: uuidv4 } = require('uuid');
-const fs = require("fs"); //FileSystem
+const fs = require("fs"); 
 const path = require("path");
+const crypto = require('crypto');
+const jwt = require("jsonwebtoken"); /*To sign the jwt token with Secret */
+const { v4: uuidv4 } = require('uuid');
+const formidable = require("formidable"); 
+const { check, validationResult } = require("express-validator");
+const { normalErrors, getRoleName, uploadPaths, extensionOf, getImageURL, removeFile } = require("../helper");
 
 
 const MAXFILEMB = 1;
@@ -45,37 +45,41 @@ exports.getUser = (req, res) => {
 
 exports.parseForm = (req, res, next) => {
     let form = new formidable.IncomingForm({ uploadDir: uploadPaths.uploads, keepExtensions: true });
+    // form.uploadDir = uploadPaths.uploads;
     // form.keepExtensions = true;
-    // uploadDir = uploadPaths.uploads
     // form.multiples = true; //Allow multiple uploads
     // store all uploads in the /uploads directory
-    console.log("FORM", form);
     form.parse(req, (err, fields, file) => {
         if (err) {
-            return res.status(400).json({ error: "Problem With Image", detail: err });
+            console.log("=>Problem  with Image", err);
+            return res.status(400).json({ errors: { avatar: "Problem With Image", detail: err } });
         }
         console.log("Fields", fields);
         req.body = fields;
 
         // handleFile
         if (file.avatar) {
+            const oldpath = file.avatar.path;
             if (file.avatar.size > MAXFILEMB * 1024 * 1024) {
+                //Removing Big temp File 
+                removeFile(oldpath);
                 return res.status(400).json({ errors: { avatar: `File Size is too Big! keep image < ${MAXFILEMB} MB` } });
             }
-            // every time a file has been uploaded successfully, rename to user ID,for unique fileName
-            const oldpath = file.avatar.path;
-            const newpath = path.join(form.uploadDir, req.profile._id + extensionOf(file.avatar.name));
+            const newFileName = req.profile._id + extensionOf(file.avatar.name);
+            const newpath = path.join(form.uploadDir, newFileName);
             console.log(newpath);
+            // After file has been uploaded successfully, rename to user ID,for unique fileName
             fs.rename(oldpath, newpath, (err) => {
                 if (err) {
                     console.log("=>ERROR IN FILE UPLOAD", err);
-                    return res.status(400).json({ errors: { avatar: "Problem With Image", detail: err } });
+                    return res.status(400).json({ errors: { avatar: "Problem With Image !", detail: err } });
                 }
-                console.log('Renamed FIle:', file.avatar.name);
-                req.body.avatar = newpath;
+                console.log('Renamed FIle:' + file.avatar.name + " to:" + newFileName);
+                req.body.avatar = getImageURL(req, newFileName);
             });
-            next();
+
         }
+        next();
     });
 };
 

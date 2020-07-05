@@ -3,7 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
-
+const { getUploadsDir } = require("./helper");
 const app = express();
 
 // Getting Routes
@@ -15,11 +15,13 @@ app.use(cors());  //CORS Middleware
 app.use(express.json()); //Allows to parse JSON ~ So we can get get json data from req.body
 app.use(express.urlencoded({ extended: true })); // https://stackoverflow.com/a/51844327
 app.use(cookieParser());
+app.use(express.static(getUploadsDir())); //to serve /uploads as static server
 
 
 // Using Routes
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
+
 
 // Enviornment variables
 const port = process.env.PORT || 4444;
@@ -38,5 +40,5 @@ connection.once("open", () => {
 })
 
 app.listen(port, () => {
-    console.log(`Edupath-Backend Server is running on port: ${port}`);
+    console.log(`Edupath-Backend Server is running on port: ${port}=>`);
 });
