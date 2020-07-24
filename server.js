@@ -1,24 +1,47 @@
 const express = require('express');
+const cors = require("cors");
+const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
+const { getUploadsDir } = require("./helper");
 const app = express();
-const port = 4444;
 
-// localhost:4444/
-app.get("/", (req, res) => {
-    res.send("<h1> Welcome to ROOT</h1>");
-});
+// Getting Routes
+const authRoutes = require("./routes/auth.route");
+const userRoutes = require("./routes/user.route.js");
+const categoryRoutes = require("./routes/category.route");
 
-// localhost:4444/home
-app.get("/home", (req, res) => {
-    console.log(req.headers.host, req.url, " was accessed in browser");
-    res.send("<h1> welcome to Home</h1>");
-});
 
-// localhost:4444/home/whatever
-app.get("/home/:something", (req, res) => {
-    res.send("<h1>You Entered : " + req.params.something);
-});
+// Middlewares
+app.use(cors());  //CORS Middleware
+app.use(express.json()); //Allows to parse JSON ~ So we can get get json data from req.body
+app.use(express.urlencoded({ extended: true })); // https://stackoverflow.com/a/51844327
+app.use(cookieParser());
+app.use(express.static(getUploadsDir())); //to serve /uploads as static server
+
+
+// Using Routes
+app.use("/api", authRoutes);
+app.use("/api", userRoutes);
+app.use("/api", categoryRoutes);
+
+
+// Enviornment variables
+const port = process.env.PORT || 4444;
+const mongoURI = process.env.DATABASE;
+
+
+// MONGODB Connection using mongoose
+mongoose.connect(mongoURI, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true })
+    .catch(err => console.log("Initial Connection Error!", err));
+
+const connection = mongoose.connection;
+connection.on('error', err => console.log("ErrorAfter Connection!", err));
+
+connection.once("open", () => {
+    console.log("MongoDB Established successfully.");
+})
 
 app.listen(port, () => {
-    console.log("Server is running on port:", port);
+    console.log(`Edupath-Backend Server is running on port: ${port}=>`);
 });
