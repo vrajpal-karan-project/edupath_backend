@@ -9,6 +9,8 @@ const app = express();
 // Getting Routes
 const authRoutes = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route.js");
+const categoryRoutes = require("./routes/category.route");
+
 
 // Middlewares
 app.use(cors());  //CORS Middleware
@@ -21,6 +23,7 @@ app.use(express.static(getUploadsDir())); //to serve /uploads as static server
 // Using Routes
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
+app.use("/api", categoryRoutes);
 
 
 // Enviornment variables
