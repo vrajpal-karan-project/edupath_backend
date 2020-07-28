@@ -10,6 +10,7 @@ const app = express();
 const authRoutes = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route.js");
 const categoryRoutes = require("./routes/category.route");
+const subcategoryRoutes = require("./routes/subcategory.route");
 
 
 // Middlewares
@@ -24,6 +25,7 @@ app.use(express.static(getUploadsDir())); //to serve /uploads as static server
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", categoryRoutes);
+app.use("/api",subcategoryRoutes);
 
 
 // Enviornment variables
