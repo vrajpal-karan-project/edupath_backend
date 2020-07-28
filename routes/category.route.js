@@ -3,10 +3,11 @@ const router = express.Router();
 const { getCategoryById, createCategory, getCategory, updateCategory, removeCategory, getAllCategories } = require("../controllers/category.controller");
 const { getUserById } = require("../controllers/user.controller");
 const { isLoggedIn, isAdmin, isAuthenticated } = require("../controllers/auth.controller");
+const { getSubcategoriesByParentId } = require("../controllers/subcategory.controller");
 
 // @params so it populates stuff in req obj
 router.param("userId", getUserById);
-router.param("categoryId", getCategoryById);
+router.param("categoryId", getCategoryById,getSubcategoriesByParentId);
 
 // @routes
 // Create

@@ -1,5 +1,7 @@
 const Category = require("../models/category.model");
+const Subcategory = require("../models/subcategory.model");
 // const { check, validationResult } = require("express-validator");
+const { getSubcategoriesByParentId } = require("./subcategory.controller");
 
 exports.getCategoryById = (req, res, next, id) => {
 
@@ -8,6 +10,13 @@ exports.getCategoryById = (req, res, next, id) => {
             return res.status(400).json({ error: "Category Not found!" });
         }
         req.category = cat;
+    });
+    Subcategory.find({ parent: id }).exec((err, subcategories) => {
+        if (err) {
+            console.log("NOSubs Err:", err)
+            return ({ error: "NO Subcategory available" });
+        }
+        req.category = { subcategories, ...req.category.toJSON() };
         next();
     });
 };
@@ -28,19 +37,18 @@ exports.createCategory = (req, res) => {
 };
 
 exports.getCategory = (req, res) => {
-    // 
     return res.json(req.category);
 };
 
 exports.getAllCategories = (req, res) => {
-    // 
+    let categories = [], subcategories = [];
     Category.find().exec((err, cats) => {
         if (err) {
-            return res.status(400).json({ error: "NO Categories found" })
+            return res.status(400).json({ error: "NO Categories found" });
         }
         res.json(cats);
     });
-}
+};
 
 exports.updateCategory = (req, res) => {
     const category = req.category;
@@ -56,13 +64,28 @@ exports.updateCategory = (req, res) => {
 
 };
 
+
 exports.removeCategory = (req, res) => {
     const category = req.category;
-    category.remove((err, cat) => {
+    Subcategory.find({ parent: category._id }).exec((err, prods) => {
         if (err) {
-            console.log("CAT REMOVE ERR", err);
-            return res.status(400).json({ error: "FAILED TO DELETE CATEGORY in DB", detail: err })
+            console.log("SubCategory find ERRoR:", err);
         }
-        res.json({ message: `${cat.name} was deleted` });
+        else {
+            if (prods && prods.length > 0) {
+                return res.status(400).json({ error: `FAILED TO DELETE CATEGORY,  Delete/update ${prods.length} Subcategory before removing this category` });
+            }
+            else {
+                // DELETING CAT
+                category.remove((err, cat) => {
+                    if (err) {
+                        console.log("CAT REMOVE ERR", err);
+                        return res.status(400).json({ error: "FAILED TO DELETE CATEGORY in DB" })
+                    }
+
+                    res.json({ message: `${cat.name} was deleted` });
+                })
+            }
+        }
     });
 };
