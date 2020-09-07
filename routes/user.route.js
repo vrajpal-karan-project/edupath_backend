@@ -8,7 +8,7 @@ const { getUserById, getUser, getAllUsers, updateUser, getUsersByRole, getCurren
 /* Whenever "userID" param is present in the route gets UserById and puts the response in request Obj, i.e-req.profile*/
 router.param("userId", getUserById);
 
-router.get("/user/:userId", isLoggedIn, isAuthenticated, getUser);
+router.get("/user/:userId", isLoggedIn, getCurrentUser, isAuthenticated, getUser);
 
 router.put("/user/:userId", isLoggedIn, parseForm, getCurrentUser, isAuthenticated, updateUser);
 

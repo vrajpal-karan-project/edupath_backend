@@ -1,16 +1,19 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const Course = require("./course.model");
 
 const videoSchema = new Schema({
     title: {
         type: String,
         trim: true,
         required: true,
-        maxlength: 64,
+        minlength: 20,
+        maxlength: 80,
         unique: true
     },
     video: {
         type: String,
+        trim: true,
         default: "",
         required: true
     },
@@ -25,5 +28,20 @@ const videoSchema = new Schema({
         default: ""
     },
 }, { timestamps: true });
+
+videoSchema.post("remove", document => {
+    const vdoId = document._id;
+    Course.find({ videos: { $in: [vdoId] } }).then(courses => {
+        Promise.all(
+            courses.map(course =>
+                Course.findOneAndUpdate(
+                    course._id,
+                    { $pull: { videos: vdoId } },
+                    { new: true }
+                )
+            )
+        );
+    });
+});
 
 module.exports = mongoose.model("Video", videoSchema);

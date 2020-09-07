@@ -2,11 +2,10 @@ const User = require("../models/user.model");
 const { check, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken"); /*To sign the jwt token with Secret */
 const expressJwt = require("express-jwt"); /* to validate JWT */
-const { normalErrors } = require("../helper");
+const { normalErrors,roles } = require("../helper");
 
 exports.signup = (req, res) => {
     const errors = validationResult(req);
-
     if (!errors.isEmpty()) {
         console.log("=>SIGNUP ERROR", errors);
         return res.status(422).json({
@@ -73,7 +72,7 @@ exports.isLoggedIn = expressJwt({
 // custom middlewares.
 exports.isAuthenticated = (req, res, next) => {
     // req.profile obj would be set from frontend
-    let checker = (req.profile && req.auth && req.profile._id == req.auth._id) || req.myAccount.role == 2;
+    let checker = (req.profile && req.auth && req.profile._id == req.auth._id) || req.myAccount.role == roles.admin;
     if (!checker) {
         return res.status(403).json({
             error: "ACCESS DENIED!"
@@ -99,9 +98,29 @@ exports.verifyOldPassword = (req, res, next) => {
 };
 
 exports.isAdmin = (req, res, next) => {
-    if (req.profile.role !== 2) {
+    if (req.profile.role !== roles.admin) {
         return res.status(403).json({
             error: "You are NOT ADMIN ! ACCESS DENIED"
+        });
+    }
+    next();
+};
+
+exports.isInstructor = (req, res, next) => {
+    if (req.profile.role < roles.instructor) {
+        return res.status(403).json({
+            error: "You are NOT INSTRUCTOR ! ACCESS DENIED"
+        });
+    }
+    next();
+};
+
+exports.isAuthor = (req, res, next) => {
+    // req.profile obj would be set from frontend
+    let checker = ( req.auth.role == roles.instructor && req.auth._id == req.course.author) || req.myAccount.role == roles.admin;
+    if (!checker) {
+        return res.status(403).json({
+            error: "ACCESS DENIED! Not Authorized."
         });
     }
     next();

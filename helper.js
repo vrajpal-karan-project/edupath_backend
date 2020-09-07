@@ -46,6 +46,21 @@ exports.removeFile = (path, filename) => {
     }
 };
 
+exports.status = {
+    registered: "REGISTERED",
+    accepted: "ACCEPTED",
+    pending: "PENDING",
+    blocked: "BLOCKED",
+    requested: "REQUESTED",
+    published: "PUBLISHED"
+}
+
+exports.roles = {
+    student: 0,
+    instructor: 1,
+    admin: 2
+};
+
 exports.getRoleName = (role) => {
     if (role === 0) return "Student";
     if (role === 1) return "Instructor";

@@ -6,7 +6,7 @@ const { isLoggedIn, isAdmin, isAuthenticated } = require("../controllers/auth.co
 
 // @params so it populates stuff in req obj
 router.param("userId", getUserById);
-router.param("categoryId", getSubcategoryById);
+router.param("subcategoryId", getSubcategoryById);
 
 // @routes
 // Create
@@ -15,15 +15,15 @@ router.post("/subcategory/create/:userId",
     createSubcategory);
 
 // READ
-router.get("/subcategory/:categoryId", getSubcategory);
+router.get("/subcategory/:subcategoryId", getSubcategory);
 
 // UPDATE
-router.put("/subcategory/:categoryId/:userId",
+router.put("/subcategory/:subcategoryId/:userId",
     isLoggedIn, isAuthenticated, isAdmin,
     updateSubcategory);
 
 // DELETE
-router.delete("/subcategory/:categoryId/:userId",
+router.delete("/subcategory/:subcategoryId/:userId",
     isLoggedIn, isAuthenticated, isAdmin,
     removeSubcategory);
 
